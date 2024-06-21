@@ -18,11 +18,11 @@ public class TaskEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public  Long id;
-    @NonNull
+    @Column(name="title", nullable = false)
     public String title;
-    @NonNull
+    @Column(name="content", nullable = false)
     public String content;
-    @NonNull
+    @Column(name="status", nullable = false)
     public String status;
 
     @Override

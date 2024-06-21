@@ -121,5 +121,6 @@ class TaskServiceTest {
         when(taskRepository.findById(1L)).thenReturn(Optional.ofNullable(taskEntity));
         var taskActualResponse=taskService.GetTaskById(1L);
         assertEquals(taskActualResponse,taskResponse);
+
     }
 }
