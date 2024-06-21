@@ -1,6 +1,5 @@
 package com.project.TodoList.models.entities;
 
-import com.project.TodoList.infastructure.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 

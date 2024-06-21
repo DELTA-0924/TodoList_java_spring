@@ -1,6 +1,6 @@
 package com.project.TodoList.controllers;
 
-import com.project.TodoList.infastructure.exception.MainException;
+import com.project.TodoList.common.exception.MainException;
 import com.project.TodoList.models.contract.Response;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -16,12 +16,8 @@ import java.io.StringWriter;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Response> handleGlobalException(Exception e, WebRequest request) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTraceString = sw.toString();
-        return ResponseEntity.internalServerError().body(new Response(stackTraceString, HttpStatus.INTERNAL_SERVER_ERROR));
+    public ResponseEntity<Response> handleGlobalException(Exception e, WebRequest request) {;
+        return ResponseEntity.internalServerError().body(new Response("Server error", HttpStatus.INTERNAL_SERVER_ERROR));
     }
     @ExceptionHandler(MainException.class)
     public ResponseEntity<Response> handleFieldNullException(MainException e, WebRequest request) {

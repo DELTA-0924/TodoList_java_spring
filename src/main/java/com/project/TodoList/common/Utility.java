@@ -1,4 +1,4 @@
-package com.project.TodoList.infastructure;
+package com.project.TodoList.common;
 
 public class Utility
 {

@@ -1,48 +1,41 @@
 package com.project.TodoList.services;
-import com.project.TodoList.infastructure.Mapper;
-import com.project.TodoList.infastructure.enums.ExceptionsCode;
-import com.project.TodoList.infastructure.enums.Status;
-import com.project.TodoList.infastructure.exception.MainException;
-import com.project.TodoList.models.contract.Response;
-import com.project.TodoList.models.contract.TaskCreateRequest;
+import com.project.TodoList.common.Mapper;
+import com.project.TodoList.common.exception.MainException;
 import com.project.TodoList.models.contract.TaskResponce;
 
-import com.project.TodoList.models.contract.TaskUpdateRequest;
 import com.project.TodoList.services.validators.TaskValidator;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import com.project.TodoList.models.dto.TaskDto;
 import com.project.TodoList.models.entities.TaskEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;//package services;
 import org.springframework.stereotype.Service;
-import com.project.TodoList.repositories.TaskReposetory;
-import org.springframework.dao.DataIntegrityViolationException;
+import com.project.TodoList.models.repositories.TaskReposetory;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.project.TodoList.infastructure.enums.ExceptionsCode.ID_FIELD_NULL;
-import static com.project.TodoList.infastructure.enums.ExceptionsCode.OBJECT_NOT_FOUND;
+import static com.project.TodoList.common.enums.ExceptionsCode.ID_FIELD_NULL;
+import static com.project.TodoList.common.enums.ExceptionsCode.OBJECT_NOT_FOUND;
 
 
 @Service
 @AllArgsConstructor
 public class TaskService {
     private TaskReposetory taskReposetory;
-    public ResponseEntity<TaskEntity> CreateTask(  TaskEntity taskEntity) {
+    public Long CreateTask(  TaskEntity taskEntity) {
         TaskValidator.TaskTitleValid().apply(taskEntity);
         TaskValidator.TaskContentValid().apply(taskEntity);
         taskReposetory.save(taskEntity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(taskEntity);
+        return taskEntity.id;
     }
-    public ResponseEntity<List<TaskEntity>> GetAllTasks() {
+    public List<TaskResponce> GetAllTasks() {
         var taskEntities = taskReposetory.findAll();
         if(taskEntities.isEmpty()) {
             throw new MainException(OBJECT_NOT_FOUND,HttpStatus.NO_CONTENT);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(taskEntities);
+        var taskResponses=taskEntities.stream().map(Mapper::fromEntityToContact).collect(Collectors.toList());
+        return taskResponses;
     }
-    public ResponseEntity<TaskEntity> UpdateTask(TaskEntity taskRequest) {
+    public TaskResponce UpdateTask(TaskEntity taskRequest) {
         Long id =Optional.ofNullable(taskRequest.getId()).orElseThrow(()->new MainException(ID_FIELD_NULL,HttpStatus.BAD_REQUEST));
         TaskEntity taskEntity = taskReposetory.findById(id).orElseThrow(()->new MainException(OBJECT_NOT_FOUND,HttpStatus.NOT_FOUND));
             //var task= Mapper.fromContactToEntity(request);
@@ -59,7 +52,8 @@ public class TaskService {
                 TaskValidator.TaskContentValid().apply(taskEntity);
             });
         taskReposetory.save(taskEntity);
-        return ResponseEntity.status(HttpStatus.OK).body(taskEntity);
+
+        return Mapper.fromEntityToContact( taskEntity);
     }
     public void DeleteTask(Long id) {
         if(!taskReposetory.existsById(id)) {
@@ -67,9 +61,10 @@ public class TaskService {
         }
         taskReposetory.deleteById(id);
     }
-    public ResponseEntity<TaskEntity> GetTaskById(Long id) {
-         var task=taskReposetory.findById(id).orElseThrow(()->new MainException(OBJECT_NOT_FOUND,HttpStatus.NOT_FOUND));
-         return ResponseEntity.status(HttpStatus.OK).body(task);
+    public TaskResponce GetTaskById(Long id) {
+         var taskEntity=taskReposetory.findById(id).orElseThrow(()->new MainException(OBJECT_NOT_FOUND,HttpStatus.NOT_FOUND));
+         var taskResponse=Mapper.fromEntityToContact(taskEntity);
+         return taskResponse;
     }
 
 }
