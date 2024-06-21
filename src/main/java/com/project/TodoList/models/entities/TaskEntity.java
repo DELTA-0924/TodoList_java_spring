@@ -8,7 +8,6 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @NoArgsConstructor
 @Builder
