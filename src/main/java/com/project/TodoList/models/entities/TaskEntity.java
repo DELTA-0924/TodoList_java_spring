@@ -1,6 +1,5 @@
 package com.project.TodoList.models.entities;
 
-import com.project.TodoList.infastructure.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +8,6 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @NoArgsConstructor
 @Builder
@@ -19,11 +17,11 @@ public class TaskEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public  Long id;
-    @NonNull
+    @Column(name="title", nullable = false)
     public String title;
-    @NonNull
+    @Column(name="content", nullable = false)
     public String content;
-    @NonNull
+    @Column(name="status", nullable = false)
     public String status;
 
     @Override

@@ -1,30 +1,26 @@
 package com.project.TodoList.TestingService;
 
-import com.project.TodoList.controllers.TaskController;
-import com.project.TodoList.infastructure.Mapper;
-import com.project.TodoList.infastructure.enums.ExceptionsCode;
-import com.project.TodoList.infastructure.exception.MainException;
-import com.project.TodoList.models.contract.TaskCreateRequest;
+import com.project.TodoList.common.TaskMapper;
+import com.project.TodoList.common.exception.MainException;
 import com.project.TodoList.models.contract.TaskResponce;
 import com.project.TodoList.models.entities.TaskEntity;
-import com.project.TodoList.repositories.TaskReposetory;
+import com.project.TodoList.models.repositories.TaskReposetory;
 import com.project.TodoList.services.TaskService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static com.project.TodoList.infastructure.enums.ExceptionsCode.OBJECT_NOT_FOUND;
+import static com.project.TodoList.common.enums.ExceptionsCode.OBJECT_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -32,20 +28,31 @@ import static org.mockito.Mockito.*;
 class TaskServiceTest {
     @Mock
     private TaskReposetory taskRepository;
-
+    @Mock
+    private TaskMapper mapper;
     @InjectMocks
     private TaskService taskService;
     private static TaskEntity taskEntity;
+    private static TaskResponce taskResponse;
     private static TaskEntity updatedTask;
     private static List<TaskEntity> expectedEntity;
+    private static List<TaskResponce> expectedResponse;
+    private static TaskResponce updatedTaskResponse;
     @BeforeAll
     static void initExpectedData() {
         taskEntity = new TaskEntity(1L, "Task", "Content", "inactive");
         updatedTask = new TaskEntity(1L, "New Task", "New Content", "active");
 
+        updatedTaskResponse=new TaskResponce(1L, "New Task", "New Content", "active");
+        taskResponse = new TaskResponce(1L, "Task", "Content", "inactive");
+
         expectedEntity = new ArrayList<TaskEntity>() {{
             add(new TaskEntity(1L, "First Task", "Content of the first task", "inactive"));
             add(new TaskEntity(2L, "Second Task", "Content of the second task", "closed"));
+        }};
+        expectedResponse = new ArrayList<TaskResponce>() {{
+            add(new TaskResponce(1L, "First Task", "Content of the first task", "inactive"));
+            add(new TaskResponce(2L, "Second Task", "Content of the second task", "closed"));
         }};
     }
 
@@ -66,19 +73,26 @@ class TaskServiceTest {
     @Test
     void GetAllTasks_DataMatchExpected() {
         when(taskRepository.findAll()).thenReturn(expectedEntity);
-
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenAnswer((Answer<TaskResponce>) invocation -> {
+            TaskEntity entity = invocation.getArgument(0);
+            for (TaskResponce response : expectedResponse) {
+                if (response.id().equals(entity.getId())) {
+                    return response;
+                }
+            }
+            return null;
+        });
         var actualResponse = taskService.GetAllTasks();
-        var actual = actualResponse.getBody();
-        assertEquals(expectedEntity, actual);
+        assertEquals(expectedResponse, actualResponse);
     }
 
     @Test
     void TaskCreate_DataMatchExpected() {
         doReturn(taskEntity).when(taskRepository).save(any(TaskEntity.class));
 
-        var savedTask = taskService.CreateTask(taskEntity).getBody();
+        var savedTask = taskService.CreateTask(taskEntity);
 
-        assertEquals(taskEntity, savedTask);
+        assertEquals(1L, savedTask);
 
         verify(taskRepository).save(taskEntity);
     }
@@ -87,9 +101,10 @@ class TaskServiceTest {
     void TaskUpdate_DataMatchExpected() {
         when(taskRepository.findById(1L)).thenReturn(Optional.of(taskEntity));
         when(taskRepository.save(any(TaskEntity.class))).thenReturn(updatedTask);
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenReturn(updatedTaskResponse);
 
-        var savedTask = taskService.UpdateTask(updatedTask).getBody();
-        assertEquals(updatedTask, savedTask);
+        var savedTask = taskService.UpdateTask(updatedTask);
+        assertEquals(updatedTaskResponse, savedTask);
         verify(taskRepository).findById(1L);
         verify(taskRepository).save(any(TaskEntity.class));
     }
@@ -102,15 +117,24 @@ class TaskServiceTest {
     }
 
     @Test
-    void TaskGetbyId_DataMatchExpected() {
+    void TaskGetbyId_ObjectNotFound() {
         when(taskRepository.findById(1L)).thenThrow(new MainException(OBJECT_NOT_FOUND,HttpStatus.NOT_FOUND));
-        var taskEntity = taskService.GetTaskById(1L).getBody();
-        assertEquals(taskEntity, taskEntity);
+        Assertions.assertThrows(MainException.class,()->taskService.GetTaskById(1L));
     }
     @Test
     void TaskUpdate_ObjectNotFound(){
         when(taskRepository.findById(1L)).thenThrow(new MainException(OBJECT_NOT_FOUND, HttpStatus.NOT_FOUND));
         Assertions.assertThrows(MainException.class, () -> taskService.UpdateTask(updatedTask));
     }
+    @Test
+    void TaskGetById_DataMatchExpected(){
+        doReturn(taskEntity).when(taskRepository).save(any(TaskEntity.class));
 
+        taskService.CreateTask(taskEntity);
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenReturn(taskResponse);
+        when(taskRepository.findById(1L)).thenReturn(Optional.ofNullable(taskEntity));
+        var taskActualResponse=taskService.GetTaskById(1L);
+        assertEquals(taskActualResponse,taskResponse);
+
+    }
 }

@@ -1,6 +1,6 @@
-package com.project.TodoList.infastructure.exception;
+package com.project.TodoList.common.exception;
 
-import com.project.TodoList.infastructure.enums.ExceptionsCode;
+import com.project.TodoList.common.enums.ExceptionsCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

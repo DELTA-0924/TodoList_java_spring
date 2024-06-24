@@ -1,6 +1,6 @@
 package com.project.TodoList.models.domain;
 
-import com.project.TodoList.infastructure.enums.Status;
+import com.project.TodoList.common.enums.Status;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.Builder;
@@ -8,7 +8,6 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Builder
 @Getter
@@ -35,7 +34,7 @@ public class TaskDomain {
             result.put("error", "length  og title or content march");
             return result;
         }
-        Status status = com.project.TodoList.infastructure.enums.Status.inactive;
+        Status status = com.project.TodoList.common.enums.Status.inactive;
         TaskDomain task = new TaskDomain(title, Content, null, status);
         result.put("task", task);
         result.put("error", null);
