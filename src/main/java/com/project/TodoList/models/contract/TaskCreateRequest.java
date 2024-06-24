@@ -14,6 +14,7 @@ import java.util.Optional;
 @Getter
 public class TaskCreateRequest
 {
+
     @NotNull(message = "Title field cannot be null")
     @NotBlank(message = "Title field cannot be null")
     @Schema(    description = "Заголовок задачи",required = true)
@@ -22,11 +23,5 @@ public class TaskCreateRequest
     @Schema(    description = "содержимое  задачи",required = true)
     private String content;
 
-    public Optional<String> getTitle(){
-        return Optional.ofNullable(title);
-    }
-    public Optional<String> getContent(){
-        return Optional.ofNullable(content);
-   }
 
 }

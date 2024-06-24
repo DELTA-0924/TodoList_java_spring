@@ -1,5 +1,6 @@
 package com.project.TodoList.TestingService;
 
+import com.project.TodoList.common.TaskMapper;
 import com.project.TodoList.common.exception.MainException;
 import com.project.TodoList.models.contract.TaskResponce;
 import com.project.TodoList.models.entities.TaskEntity;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -26,7 +28,8 @@ import static org.mockito.Mockito.*;
 class TaskServiceTest {
     @Mock
     private TaskReposetory taskRepository;
-
+    @Mock
+    private TaskMapper mapper;
     @InjectMocks
     private TaskService taskService;
     private static TaskEntity taskEntity;
@@ -70,6 +73,15 @@ class TaskServiceTest {
     @Test
     void GetAllTasks_DataMatchExpected() {
         when(taskRepository.findAll()).thenReturn(expectedEntity);
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenAnswer((Answer<TaskResponce>) invocation -> {
+            TaskEntity entity = invocation.getArgument(0);
+            for (TaskResponce response : expectedResponse) {
+                if (response.id().equals(entity.getId())) {
+                    return response;
+                }
+            }
+            return null;
+        });
         var actualResponse = taskService.GetAllTasks();
         assertEquals(expectedResponse, actualResponse);
     }
@@ -89,6 +101,7 @@ class TaskServiceTest {
     void TaskUpdate_DataMatchExpected() {
         when(taskRepository.findById(1L)).thenReturn(Optional.of(taskEntity));
         when(taskRepository.save(any(TaskEntity.class))).thenReturn(updatedTask);
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenReturn(updatedTaskResponse);
 
         var savedTask = taskService.UpdateTask(updatedTask);
         assertEquals(updatedTaskResponse, savedTask);
@@ -118,6 +131,7 @@ class TaskServiceTest {
         doReturn(taskEntity).when(taskRepository).save(any(TaskEntity.class));
 
         taskService.CreateTask(taskEntity);
+        when(mapper.EntityToContact(any(TaskEntity.class))).thenReturn(taskResponse);
         when(taskRepository.findById(1L)).thenReturn(Optional.ofNullable(taskEntity));
         var taskActualResponse=taskService.GetTaskById(1L);
         assertEquals(taskActualResponse,taskResponse);

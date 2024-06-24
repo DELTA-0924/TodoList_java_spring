@@ -1,6 +1,6 @@
 package com.project.TodoList.controllers;
 
-import com.project.TodoList.common.Mapper;
+import com.project.TodoList.common.TaskMapper;
 import com.project.TodoList.models.contract.Response;
 import com.project.TodoList.models.contract.TaskCreateRequest;
 import com.project.TodoList.models.contract.TaskResponce;
@@ -30,6 +30,7 @@ import java.util.List;
 public class TaskController {
 
     private final TaskReposetory taskReposetory;
+    private final TaskMapper mapper;
     private TaskService taskService;
     @Operation(summary = "get task",description = "this endpoint got a  task by id which stay in database ")
     @ApiResponses(value = {
@@ -61,7 +62,7 @@ public class TaskController {
     })
     @PostMapping(value = "")
     public ResponseEntity<Response> taskCreate(@Valid @RequestBody TaskCreateRequest request) {
-        Long  taskId=taskService.CreateTask(Mapper.fromContactToEntity(request));
+        Long  taskId=taskService.CreateTask(mapper.ContactToEntity(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(new Response(taskId.toString(),HttpStatus.CREATED));
     }
 
@@ -84,7 +85,7 @@ public class TaskController {
     })
     @PutMapping("")
     public ResponseEntity<TaskResponce>taskUpdate(@RequestBody TaskUpdateRequest request){
-        var taskResponse =taskService.UpdateTask(Mapper.fromContactToEntity(request));
+        var taskResponse =taskService.UpdateTask(mapper.UpdateContactToEntity(request));
         return ResponseEntity.ok().body(taskResponse);
     }
 }

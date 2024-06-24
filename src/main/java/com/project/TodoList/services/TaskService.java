@@ -1,11 +1,12 @@
 package com.project.TodoList.services;
-import com.project.TodoList.common.Mapper;
+import com.project.TodoList.common.TaskMapper;
 import com.project.TodoList.common.exception.MainException;
 import com.project.TodoList.models.contract.TaskResponce;
 
 import com.project.TodoList.services.validators.TaskValidator;
 import lombok.AllArgsConstructor;
 import com.project.TodoList.models.entities.TaskEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.project.TodoList.models.repositories.TaskReposetory;
@@ -20,10 +21,12 @@ import static com.project.TodoList.common.enums.ExceptionsCode.OBJECT_NOT_FOUND;
 @Service
 @AllArgsConstructor
 public class TaskService {
+    private TaskMapper mapper;
     private TaskReposetory taskReposetory;
     public Long CreateTask(  TaskEntity taskEntity) {
         TaskValidator.TaskTitleValid().apply(taskEntity);
         TaskValidator.TaskContentValid().apply(taskEntity);
+        taskEntity.setStatus("inactive");
         taskReposetory.save(taskEntity);
         return taskEntity.id;
     }
@@ -32,7 +35,7 @@ public class TaskService {
         if(taskEntities.isEmpty()) {
             throw new MainException(OBJECT_NOT_FOUND,HttpStatus.NO_CONTENT);
         }
-        var taskResponses=taskEntities.stream().map(Mapper::fromEntityToContact).collect(Collectors.toList());
+        var taskResponses=taskEntities.stream().map(t->mapper.EntityToContact(t)).collect(Collectors.toList());
         return taskResponses;
     }
     public TaskResponce UpdateTask(TaskEntity taskRequest) {
@@ -53,7 +56,7 @@ public class TaskService {
             });
         taskReposetory.save(taskEntity);
 
-        return Mapper.fromEntityToContact( taskEntity);
+        return mapper.EntityToContact(taskEntity);
     }
     public void DeleteTask(Long id) {
         if(!taskReposetory.existsById(id)) {
@@ -63,7 +66,7 @@ public class TaskService {
     }
     public TaskResponce GetTaskById(Long id) {
          var taskEntity=taskReposetory.findById(id).orElseThrow(()->new MainException(OBJECT_NOT_FOUND,HttpStatus.NOT_FOUND));
-         var taskResponse=Mapper.fromEntityToContact(taskEntity);
+         var taskResponse=mapper.EntityToContact(taskEntity);
          return taskResponse;
     }
 
