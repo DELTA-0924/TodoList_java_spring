@@ -90,7 +90,3 @@ public class CustomNotFoundException extends RuntimeException {
 }
 ```
 
-## Контакты
-Автор: **Ваше Имя**  
-GitHub: [https://github.com/yourusername](https://github.com/yourusername)  
-
